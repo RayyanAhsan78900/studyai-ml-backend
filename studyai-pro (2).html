@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudyAI Pro — Intelligent Academic Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#0a0a0f;
+  --bg2:#111118;
+  --bg3:#18181f;
+  --bg4:#1e1e28;
+  --surface:#222230;
+  --surface2:#2a2a3a;
+  --border:#2e2e40;
+  --border2:#3a3a50;
+  --accent:#6366f1;
+  --accent2:#818cf8;
+  --accent3:#a5b4fc;
+  --pink:#ec4899;
+  --cyan:#22d3ee;
+  --green:#34d399;
+  --amber:#fbbf24;
+  --red:#f87171;
+  --text:#f0f0f8;
+  --text2:#9090b0;
+  --text3:#5a5a78;
+  --glow:rgba(99,102,241,0.3);
+  --glow2:rgba(99,102,241,0.1);
+  --r:16px;
+  --r2:12px;
+  --r3:8px;
+  --sidebar:72px;
+  --sidebar-open:260px;
+  --topbar:64px;
+  --shadow:0 4px 24px rgba(0,0,0,0.4);
+  --shadow2:0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* Light theme */
+body.light{
+  --bg:#f0f0f8;
+  --bg2:#ffffff;
+  --bg3:#f5f5fc;
+  --bg4:#ebebf5;
+  --surface:#e8e8f4;
+  --surface2:#ddddf0;
+  --border:#d0d0e8;
+  --border2:#c0c0da;
+  --text:#1a1a2e;
+  --text2:#4a4a6a;
+  --text3:#8888aa;
+  --glow:rgba(99,102,241,0.2);
+}
+
+html{scroll-behavior:smooth}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;font-size:14px;-webkit-font-smoothing:antialiased;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");pointer-events:none;z-index:0;}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px}
+
+.layout{display:flex;min-height:100vh;position:relative;z-index:1}
+
+/* Sidebar */
+.sidebar{width:var(--sidebar);background:var(--bg2);border-right:1px solid var(--border);position:fixed;inset:0 auto 0 0;display:flex;flex-direction:column;transition:width .3s cubic-bezier(.4,0,.2,1);z-index:200;overflow:hidden;}
+.sidebar.expanded{width:var(--sidebar-open)}
+.sidebar.expanded .nav-label{opacity:1;transform:translateX(0)}
+.sidebar.expanded .logo-text{opacity:1;transform:translateX(0)}
+.logo-area{display:flex;align-items:center;gap:14px;padding:20px 18px;border-bottom:1px solid var(--border);min-height:var(--topbar);cursor:pointer;}
+.logo-mark{width:36px;height:36px;min-width:36px;background:linear-gradient(135deg,var(--accent),var(--pink));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 20px var(--glow);transition:transform .3s,box-shadow .3s;}
+.logo-mark:hover{transform:scale(1.08);box-shadow:0 0 30px var(--glow)}
+.logo-text{opacity:0;transform:translateX(-8px);transition:all .25s;white-space:nowrap;}
+.logo-text strong{font-size:15px;font-weight:700;color:var(--text)}
+.logo-text span{font-size:11px;color:var(--text3);display:block;margin-top:1px}
+nav{flex:1;padding:12px 0;overflow:hidden}
+.nav-item{display:flex;align-items:center;gap:14px;padding:11px 18px;margin:2px 8px;border-radius:var(--r2);cursor:pointer;color:var(--text2);font-weight:500;font-size:13.5px;transition:all .2s;white-space:nowrap;position:relative;}
+.nav-item:hover{background:var(--surface);color:var(--text)}
+.nav-item.active{background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(236,72,153,.1));color:var(--accent2);box-shadow:inset 0 0 0 1px rgba(99,102,241,.3);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:60%;background:linear-gradient(180deg,var(--accent),var(--pink));border-radius:0 3px 3px 0;}
+.nav-icon{width:18px;min-width:18px;font-size:16px;text-align:center}
+.nav-label{opacity:0;transform:translateX(-6px);transition:all .25s;font-size:13.5px}
+.sidebar-footer{padding:12px 8px;border-top:1px solid var(--border);}
+.nav-notif-badge{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:var(--pink);color:white;font-size:9px;font-weight:700;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+
+/* Main */
+.main{flex:1;margin-left:var(--sidebar);transition:margin-left .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;min-height:100vh;}
+.sidebar.expanded ~ .main{margin-left:var(--sidebar-open)}
+
+/* Topbar */
+.topbar{height:var(--topbar);background:rgba(10,10,15,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:16px;position:sticky;top:0;z-index:100;}
+body.light .topbar{background:rgba(255,255,255,.9)}
+.topbar-title{flex:1;font-size:18px;font-weight:700;background:linear-gradient(120deg,var(--text) 40%,var(--accent3));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.icon-btn{width:38px;height:38px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:15px;transition:all .2s;position:relative;}
+.icon-btn:hover{background:var(--surface2);color:var(--text);border-color:var(--border2)}
+.badge{position:absolute;top:-5px;right:-5px;background:var(--pink);color:white;font-size:9px;font-weight:700;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg);}
+
+/* Content */
+.content{padding:28px;flex:1;max-width:1400px}
+.section{display:none;animation:fadeUp .35s ease}
+.section.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* Welcome */
+.welcome-banner{background:linear-gradient(135deg,rgba(99,102,241,.15) 0%,rgba(236,72,153,.1) 100%);border:1px solid rgba(99,102,241,.25);border-radius:var(--r);padding:22px 28px;margin-bottom:24px;display:flex;align-items:center;gap:20px;position:relative;overflow:hidden;}
+.welcome-banner::after{content:'';position:absolute;right:-40px;top:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(99,102,241,.15),transparent 70%);pointer-events:none;}
+.welcome-emoji{font-size:36px;line-height:1}
+.welcome-text h2{font-size:17px;font-weight:700;margin-bottom:4px}
+.welcome-text p{color:var(--text2);font-size:13px;line-height:1.5}
+.ai-pulse{display:inline-flex;align-items:center;gap:6px;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:var(--accent3);font-size:11px;font-weight:600;padding:4px 10px;border-radius:100px;margin-left:10px;}
+.ai-pulse::before{content:'';width:6px;height:6px;background:var(--accent);border-radius:50%;animation:blink 1.5s ease infinite;}
+@keyframes blink{0%,100%{opacity:1;box-shadow:0 0 6px var(--accent)}50%{opacity:.3;box-shadow:none}}
+
+/* Stats */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+@media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px;transition:all .25s;cursor:default;position:relative;overflow:hidden;}
+.stat-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:var(--shadow)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0;transition:opacity .3s;}
+.stat-card:hover::before{opacity:1}
+.stat-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.stat-icon-wrap{width:40px;height:40px;border-radius:var(--r2);display:flex;align-items:center;justify-content:center;font-size:17px;}
+.stat-delta{font-size:11px;font-weight:600;padding:2px 8px;border-radius:100px;}
+.stat-val{font-size:30px;font-weight:800;margin-bottom:4px;letter-spacing:-1px}
+.stat-lbl{font-size:12px;color:var(--text2);font-weight:500}
+.stat-bar{margin-top:14px;height:4px;background:var(--surface);border-radius:4px;overflow:hidden;}
+.stat-bar-fill{height:100%;border-radius:4px;transition:width .6s ease}
+
+/* Grid */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--border);}
+.card-title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}
+.card-title i{font-size:13px;color:var(--accent2)}
+.card-body{padding:20px}
+
+/* Forms */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.form-row{grid-template-columns:1fr}}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group label{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+input,select,textarea{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:10px 14px;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;width:100%;transition:all .2s;outline:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.12);background:var(--bg4);}
+input::placeholder{color:var(--text3)}
+select option{background:var(--bg3)}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:var(--r2);font-family:'Sora',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:none;white-space:nowrap;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#7c3aed);color:white;}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(99,102,241,.4);}
+.btn-ghost{background:var(--surface);border:1px solid var(--border);color:var(--text2)}
+.btn-ghost:hover{background:var(--surface2);color:var(--text);border-color:var(--border2)}
+.btn-sm{padding:7px 14px;font-size:12px}
+.btn-danger{background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.3);color:var(--red)}
+.btn-danger:hover{background:rgba(248,113,113,.2)}
+.btn-success{background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.3);color:var(--green)}
+
+/* Tasks */
+.task-list{display:flex;flex-direction:column;gap:8px;max-height:380px;overflow-y:auto;padding-right:4px}
+.task-item{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:12px 14px;display:flex;align-items:center;gap:12px;transition:all .2s;animation:slideIn .3s ease;}
+.task-item:hover{border-color:var(--border2);background:var(--bg4)}
+@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+.task-check{width:20px;height:20px;min-width:20px;border:2px solid var(--border2);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.task-check:hover{border-color:var(--accent)}
+.task-check.done{background:var(--accent);border-color:var(--accent)}
+.task-check.done::after{content:'✓';color:white;font-size:11px;font-weight:700}
+.task-info{flex:1;min-width:0}
+.task-name{font-size:13.5px;font-weight:600;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-name.done-text{text-decoration:line-through;color:var(--text3)}
+.task-meta{display:flex;align-items:center;gap:10px;font-size:11.5px;color:var(--text3)}
+.task-actions{display:flex;gap:6px}
+
+/* Chips */
+.chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:100px;font-size:11px;font-weight:600;}
+.chip-red{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.2)}
+.chip-amber{background:rgba(251,191,36,.12);color:var(--amber);border:1px solid rgba(251,191,36,.2)}
+.chip-green{background:rgba(52,211,153,.12);color:var(--green);border:1px solid rgba(52,211,153,.2)}
+.chip-blue{background:rgba(99,102,241,.12);color:var(--accent2);border:1px solid rgba(99,102,241,.2)}
+.chip-pink{background:rgba(236,72,153,.12);color:var(--pink);border:1px solid rgba(236,72,153,.2)}
+
+/* Insight */
+.insight-box{background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(236,72,153,.05));border:1px solid rgba(99,102,241,.2);border-radius:var(--r2);padding:14px 16px;font-size:13px;line-height:1.6;color:var(--text2);position:relative;overflow:hidden;}
+.insight-box::before{content:'AI';position:absolute;right:14px;top:12px;font-size:9px;font-weight:800;letter-spacing:1px;color:var(--accent3);opacity:.5;}
+
+/* Schedule */
+.schedule-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
+@media(max-width:900px){.schedule-grid{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:600px){.schedule-grid{grid-template-columns:repeat(2,1fr)}}
+.day-col{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:12px;min-height:160px}
+.day-col.today{border-color:rgba(99,102,241,.4);background:rgba(99,102,241,.05)}
+.day-name{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:10px;text-align:center}
+.day-col.today .day-name{color:var(--accent2)}
+.sched-task{background:var(--surface);border-left:2px solid var(--accent);border-radius:var(--r3);padding:6px 8px;margin-bottom:6px;font-size:11px;line-height:1.4;}
+.sched-task strong{display:block;font-size:11px;color:var(--text);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sched-task span{color:var(--text3);font-size:10px}
+.day-free{text-align:center;color:var(--text3);font-size:11px;padding-top:16px}
+
+/* Timer */
+.timer-wrap{text-align:center;padding:32px 20px}
+.timer-ring{position:relative;width:200px;height:200px;margin:0 auto 28px;}
+.timer-ring svg{transform:rotate(-90deg)}
+.timer-track{fill:none;stroke:var(--surface2);stroke-width:10}
+.timer-progress{fill:none;stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset .5s linear}
+.timer-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.timer-digits{font-family:'JetBrains Mono',monospace;font-size:42px;font-weight:500;background:linear-gradient(135deg,var(--text),var(--accent3));-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:-1px;}
+.timer-mode{font-size:11px;color:var(--text3);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.timer-btns{display:flex;gap:12px;justify-content:center;margin-bottom:24px}
+.pomodoro-dots{display:flex;gap:8px;justify-content:center;margin-bottom:16px}
+.pom-dot{width:10px;height:10px;border-radius:50%;background:var(--surface2);border:1px solid var(--border2);transition:all .3s;}
+.pom-dot.done{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.session-select{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.sess-btn{padding:7px 16px;border-radius:100px;font-size:12px;font-weight:600;background:var(--surface);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .2s;}
+.sess-btn.active,.sess-btn:hover{background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.4);color:var(--accent2)}
+
+/* Analytics */
+.analytics-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+@media(max-width:800px){.analytics-grid{grid-template-columns:1fr}}
+.chart-wrap{position:relative;height:220px;width:100%}
+.predict-row{display:flex;flex-direction:column;gap:12px}
+.predict-item{display:flex;align-items:center;gap:12px}
+.predict-name{font-size:13px;font-weight:600;min-width:140px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.predict-bar{flex:1;height:6px;background:var(--surface2);border-radius:10px;overflow:hidden}
+.predict-fill{height:100%;border-radius:10px;transition:width .8s ease}
+.predict-pct{font-size:12px;font-weight:600;min-width:38px;text-align:right;font-family:'JetBrains Mono',monospace}
+.metrics-mini{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+@media(max-width:700px){.metrics-mini{grid-template-columns:repeat(2,1fr)}}
+.metric-mini{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:14px;text-align:center;}
+.metric-mini-val{font-size:22px;font-weight:800;letter-spacing:-1px;margin-bottom:4px}
+.metric-mini-lbl{font-size:11px;color:var(--text3);font-weight:600}
+.tips-list{display:flex;flex-direction:column;gap:10px}
+.tip-item{display:flex;align-items:flex-start;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:12px 14px;font-size:13px;}
+.tip-icon{font-size:16px;margin-top:1px}
+
+/* Achievements */
+.ach-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:700px){.ach-grid{grid-template-columns:repeat(2,1fr)}}
+.ach-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:22px 16px;text-align:center;transition:all .3s;position:relative;overflow:hidden;}
+.ach-card.unlocked{border-color:rgba(99,102,241,.35);background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(236,72,153,.04));}
+.ach-card.locked{opacity:.45}
+.ach-emoji{font-size:34px;margin-bottom:12px;display:block}
+.ach-name{font-size:14px;font-weight:700;margin-bottom:6px}
+.ach-desc{font-size:11.5px;color:var(--text3);line-height:1.4}
+
+/* Empty */
+.empty-state{text-align:center;padding:40px 20px;color:var(--text3)}
+.empty-state i{font-size:36px;margin-bottom:14px;opacity:.4;display:block}
+.empty-state p{font-size:13px}
+
+/* Toast */
+#toast-area{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column-reverse;gap:8px;z-index:999;}
+.toast{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r2);padding:12px 16px;box-shadow:var(--shadow);font-size:13px;font-weight:500;animation:toastIn .3s ease;max-width:300px;}
+.toast.exit{animation:toastOut .3s ease forwards}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes toastOut{to{opacity:0;transform:translateY(10px) scale(.95)}}
+.toast-icon{font-size:16px}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+.modal-bg.open{opacity:1;pointer-events:all}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:28px;width:min(520px,92vw);transform:scale(.95);transition:transform .2s;max-height:90vh;overflow-y:auto;}
+.modal-bg.open .modal{transform:scale(1)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.modal-title{font-size:17px;font-weight:700}
+.modal-close{width:32px;height:32px;border-radius:var(--r3);background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:14px;transition:all .2s;}
+.modal-close:hover{background:var(--surface2);color:var(--text)}
+
+/* Misc */
+.divider{height:1px;background:var(--border);margin:20px 0}
+.urgency-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+#timerRing{stroke:url(#timerGrad);stroke-dasharray:534;stroke-dashoffset:0}
+.section-subtitle{font-size:13px;color:var(--text2);margin-bottom:20px}
+.full-card{margin-bottom:16px}
+.sb-toggle{display:none;position:fixed;bottom:20px;left:10px;width:40px;height:40px;background:var(--accent);border-radius:50%;z-index:250;align-items:center;justify-content:center;cursor:pointer;color:white;font-size:15px;box-shadow:0 4px 16px var(--glow);}
+@media(max-width:600px){.sb-toggle{display:flex}.sidebar{width:0;border:none}.sidebar.expanded{width:var(--sidebar-open);border-right:1px solid var(--border)}.main{margin-left:0}.sidebar.expanded ~ .main{margin-left:0}.content{padding:16px}}
+
+/* ─── NOTIFICATIONS PANEL ─── */
+.notif-panel{
+  position:fixed;top:var(--topbar);right:0;
+  width:360px;height:calc(100vh - var(--topbar));
+  background:var(--bg2);border-left:1px solid var(--border);
+  z-index:150;transform:translateX(100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;
+  box-shadow:-8px 0 32px rgba(0,0,0,.3);
+}
+.notif-panel.open{transform:translateX(0)}
+.notif-panel-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 20px;border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.notif-panel-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
+.notif-actions{display:flex;gap:8px}
+.notif-list{flex:1;overflow-y:auto;padding:12px}
+.notif-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:12px;border-radius:var(--r2);
+  background:var(--bg3);border:1px solid var(--border);
+  margin-bottom:8px;transition:all .2s;cursor:pointer;
+  animation:slideIn .3s ease;
+}
+.notif-item:hover{background:var(--bg4);border-color:var(--border2)}
+.notif-item.unread{border-left:3px solid var(--accent)}
+.notif-item.unread-red{border-left:3px solid var(--red)}
+.notif-item.unread-amber{border-left:3px solid var(--amber)}
+.notif-icon{
+  width:36px;height:36px;min-width:36px;border-radius:var(--r2);
+  display:flex;align-items:center;justify-content:center;font-size:15px;
+}
+.notif-content{flex:1;min-width:0}
+.notif-title{font-size:13px;font-weight:600;margin-bottom:3px}
+.notif-body{font-size:12px;color:var(--text2);line-height:1.4;margin-bottom:5px}
+.notif-time{font-size:11px;color:var(--text3)}
+.notif-empty{text-align:center;padding:40px 20px;color:var(--text3)}
+.notif-empty i{font-size:32px;opacity:.3;display:block;margin-bottom:12px}
+.notif-tabs{display:flex;gap:4px;padding:12px 12px 0;border-bottom:1px solid var(--border);flex-shrink:0;}
+.notif-tab{padding:7px 14px;border-radius:var(--r2) var(--r2) 0 0;font-size:12px;font-weight:600;cursor:pointer;color:var(--text3);transition:all .2s;border-bottom:2px solid transparent;}
+.notif-tab.active{color:var(--accent2);border-bottom-color:var(--accent);background:rgba(99,102,241,.05)}
+
+/* ─── SETTINGS PANEL ─── */
+.settings-panel{
+  position:fixed;top:var(--topbar);right:0;
+  width:400px;height:calc(100vh - var(--topbar));
+  background:var(--bg2);border-left:1px solid var(--border);
+  z-index:150;transform:translateX(100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;
+  box-shadow:-8px 0 32px rgba(0,0,0,.3);
+  overflow-y:auto;
+}
+.settings-panel.open{transform:translateX(0)}
+.settings-panel-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 20px;border-bottom:1px solid var(--border);
+  position:sticky;top:0;background:var(--bg2);z-index:10;
+}
+.settings-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
+.settings-section{padding:20px}
+.settings-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:14px}
+.settings-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 0;border-bottom:1px solid var(--border);gap:16px;
+}
+.settings-item:last-child{border-bottom:none}
+.settings-item-info{flex:1}
+.settings-item-label{font-size:13px;font-weight:600;margin-bottom:2px}
+.settings-item-desc{font-size:11px;color:var(--text3);line-height:1.4}
+
+/* Toggle switch */
+.toggle{width:44px;height:24px;background:var(--surface2);border-radius:100px;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;border:1px solid var(--border2);}
+.toggle.on{background:var(--accent);border-color:var(--accent)}
+.toggle::after{content:'';position:absolute;width:18px;height:18px;background:white;border-radius:50%;top:2px;left:2px;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.3);}
+.toggle.on::after{transform:translateX(20px)}
+
+/* Color picker */
+.color-options{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.color-opt{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .2s;position:relative;}
+.color-opt:hover{transform:scale(1.15)}
+.color-opt.active{border-color:white;box-shadow:0 0 0 2px var(--accent)}
+.color-opt::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;opacity:0;}
+.color-opt.active::after{opacity:1}
+
+/* Hours per day slider */
+.slider-wrap{display:flex;align-items:center;gap:12px;margin-top:10px}
+input[type=range]{-webkit-appearance:none;height:4px;border-radius:4px;background:linear-gradient(to right,var(--accent) 0%,var(--accent) var(--val,50%),var(--surface2) var(--val,50%),var(--surface2) 100%);border:none;padding:0;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:white;box-shadow:0 1px 6px rgba(0,0,0,.4);border:2px solid var(--accent);}
+.slider-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--accent2);min-width:30px;text-align:center}
+
+/* Profile */
+.profile-area{display:flex;align-items:center;gap:16px;padding:20px;background:var(--bg3);border-radius:var(--r2);margin:0 20px 0;}
+.avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--pink));display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:white;flex-shrink:0;cursor:pointer;transition:transform .2s;}
+.avatar:hover{transform:scale(1.05)}
+.profile-info{flex:1}
+.profile-name{font-size:15px;font-weight:700;margin-bottom:4px}
+.profile-email{font-size:12px;color:var(--text3)}
+.profile-edit-btn{font-size:12px;color:var(--accent2);cursor:pointer;background:none;border:none;font-family:'Sora',sans-serif;padding:0;font-weight:600;}
+.profile-edit-btn:hover{text-decoration:underline}
+
+/* Study goals */
+.goal-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.goal-item:last-child{border-bottom:none}
+.goal-label{flex:1;font-size:13px;font-weight:600}
+.goal-val{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent2);font-weight:600}
+
+/* Overlay for panels */
+.panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:140;opacity:0;pointer-events:none;transition:opacity .3s;}
+.panel-overlay.show{opacity:1;pointer-events:all}
+
+/* Notes */
+.notes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+@media(max-width:700px){.notes-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:450px){.notes-grid{grid-template-columns:1fr}}
+.note-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:16px;cursor:pointer;transition:all .25s;position:relative;min-height:120px;}
+.note-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:var(--shadow)}
+.note-card-title{font-size:13px;font-weight:700;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.note-card-body{font-size:12px;color:var(--text2);line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;}
+.note-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px;font-size:11px;color:var(--text3)}
+.note-del{position:absolute;top:10px;right:10px;opacity:0;background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);color:var(--red);border-radius:6px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;transition:opacity .2s;}
+.note-card:hover .note-del{opacity:1}
+.note-color-bar{height:3px;border-radius:3px;margin-bottom:12px}
+.note-colors{display:flex;gap:6px;margin-top:8px}
+.nc{width:18px;height:18px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .2s;flex-shrink:0}
+.nc:hover,.nc.active{transform:scale(1.2);border-color:white}
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="logo-area" onclick="toggleSidebar()">
+    <div class="logo-mark">🧠</div>
+    <div class="logo-text"><strong>StudyAI Pro</strong><span>Intelligent Planner</span></div>
+  </div>
+  <nav>
+    <div class="nav-item active" data-tab="dashboard"><i class="fas fa-layer-group nav-icon"></i><span class="nav-label">Dashboard</span></div>
+    <div class="nav-item" data-tab="planner"><i class="fas fa-calendar-week nav-icon"></i><span class="nav-label">AI Planner</span></div>
+    <div class="nav-item" data-tab="tasks"><i class="fas fa-list-check nav-icon"></i><span class="nav-label">Tasks</span></div>
+    <div class="nav-item" data-tab="notes"><i class="fas fa-sticky-note nav-icon"></i><span class="nav-label">Notes</span></div>
+    <div class="nav-item" data-tab="timer"><i class="fas fa-circle-pause nav-icon"></i><span class="nav-label">Pomodoro</span></div>
+    <div class="nav-item" data-tab="analytics"><i class="fas fa-chart-line nav-icon"></i><span class="nav-label">Analytics</span></div>
+    <div class="nav-item" data-tab="achievements"><i class="fas fa-medal nav-icon"></i><span class="nav-label">Achievements</span></div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="nav-item" onclick="openNotifPanel()"><i class="fas fa-bell nav-icon"></i><span class="nav-label">Notifications</span><span class="nav-notif-badge" id="nav-notif-count" style="display:none">0</span></div>
+    <div class="nav-item" onclick="openSettingsPanel()"><i class="fas fa-sliders nav-icon"></i><span class="nav-label">Settings</span></div>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="pageTitle">Dashboard</div>
+    <div class="topbar-actions">
+      <div class="icon-btn" title="Notifications" onclick="openNotifPanel()">
+        <i class="fas fa-bell"></i>
+        <div class="badge" id="notifBadge">0</div>
+      </div>
+      <div class="icon-btn" title="Add task" onclick="openModal()"><i class="fas fa-plus"></i></div>
+      <div class="icon-btn" title="Settings" onclick="openSettingsPanel()"><i class="fas fa-sliders"></i></div>
+      <div class="icon-btn" title="Toggle sidebar" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- Dashboard -->
+    <div class="section active" id="sec-dashboard">
+      <div class="welcome-banner">
+        <div class="welcome-emoji">👋</div>
+        <div class="welcome-text">
+          <h2>Good <span id="greeting"></span>, <span id="user-display-name">Scholar</span>!<span class="ai-pulse">AI Active</span></h2>
+          <p id="aiTip">Analyzing your study patterns and building insights...</p>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-top"><div class="stat-icon-wrap" style="background:rgba(99,102,241,.12)"><i class="fas fa-list-check" style="color:var(--accent2)"></i></div><span class="stat-delta" id="delta-tasks" style="background:rgba(99,102,241,.12);color:var(--accent2)">—</span></div>
+          <div class="stat-val" id="stat-total">0</div><div class="stat-lbl">Total Tasks</div>
+          <div class="stat-bar"><div class="stat-bar-fill" id="bar-total" style="background:linear-gradient(90deg,var(--accent),#7c3aed);width:0%"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top"><div class="stat-icon-wrap" style="background:rgba(52,211,153,.12)"><i class="fas fa-circle-check" style="color:var(--green)"></i></div><span class="stat-delta" id="delta-done" style="background:rgba(52,211,153,.12);color:var(--green)">—</span></div>
+          <div class="stat-val" id="stat-done">0</div><div class="stat-lbl">Completed</div>
+          <div class="stat-bar"><div class="stat-bar-fill" id="bar-done" style="background:linear-gradient(90deg,var(--green),var(--cyan));width:0%"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top"><div class="stat-icon-wrap" style="background:rgba(251,191,36,.12)"><i class="fas fa-clock" style="color:var(--amber)"></i></div><span class="stat-delta" id="delta-pend" style="background:rgba(251,191,36,.12);color:var(--amber)">—</span></div>
+          <div class="stat-val" id="stat-pend">0</div><div class="stat-lbl">Pending</div>
+          <div class="stat-bar"><div class="stat-bar-fill" id="bar-pend" style="background:linear-gradient(90deg,var(--amber),var(--pink));width:0%"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top"><div class="stat-icon-wrap" style="background:rgba(248,113,113,.12)"><i class="fas fa-fire" style="color:var(--red)"></i></div><span class="stat-delta" id="delta-streak" style="background:rgba(248,113,113,.12);color:var(--red)">🔥</span></div>
+          <div class="stat-val" id="stat-streak">0</div><div class="stat-lbl">Day Streak</div>
+          <div class="stat-bar"><div class="stat-bar-fill" id="bar-streak" style="background:linear-gradient(90deg,var(--red),var(--pink));width:0%"></div></div>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="card full-card">
+          <div class="card-header"><span class="card-title"><i class="fas fa-bolt-lightning"></i>Recent Tasks</span><button class="btn btn-ghost btn-sm" onclick="switchTab('tasks')">View all →</button></div>
+          <div class="card-body"><div class="task-list" id="recent-list"></div></div>
+        </div>
+        <div class="card full-card">
+          <div class="card-header"><span class="card-title"><i class="fas fa-robot"></i>AI Insights</span><span class="chip chip-blue" style="font-size:10px">Live</span></div>
+          <div class="card-body"><div id="ai-insights-dash" style="display:flex;flex-direction:column;gap:10px"></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title"><i class="fas fa-plus"></i>Quick Add Task</span></div>
+        <div class="card-body">
+          <div class="form-row" style="margin-bottom:12px">
+            <div class="form-group"><label>Task Name</label><input id="q-name" type="text" placeholder="e.g. Neural Networks assignment"></div>
+            <div class="form-group"><label>Deadline</label><input id="q-deadline" type="date"></div>
+            <div class="form-group"><label>Difficulty</label><select id="q-diff"><option value="1">Easy</option><option value="2" selected>Medium</option><option value="3">Hard</option></select></div>
+            <div class="form-group"><label>Hours needed</label><input id="q-hours" type="number" value="2" step="0.5" min="0.5"></div>
+          </div>
+          <button class="btn btn-primary" onclick="addTask()"><i class="fas fa-plus"></i> Create Task</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Planner -->
+    <div class="section" id="sec-planner">
+      <p class="section-subtitle">AI distributes your pending tasks intelligently across the week based on deadlines and difficulty.</p>
+      <div class="card full-card">
+        <div class="card-header"><span class="card-title"><i class="fas fa-calendar-week"></i>Weekly Schedule</span><button class="btn btn-ghost btn-sm" onclick="renderSchedule()"><i class="fas fa-rotate-right"></i> Regenerate</button></div>
+        <div class="card-body"><div class="schedule-grid" id="schedule-grid"></div></div>
+      </div>
+    </div>
+
+    <!-- Tasks -->
+    <div class="section" id="sec-tasks">
+      <div class="urgency-row" id="urgency-row"></div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title"><i class="fas fa-database"></i>All Tasks</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" onclick="filterTasks('all')" id="f-all">All</button>
+            <button class="btn btn-ghost btn-sm" onclick="filterTasks('pending')" id="f-pend">Pending</button>
+            <button class="btn btn-ghost btn-sm" onclick="filterTasks('done')" id="f-done">Done</button>
+          </div>
+        </div>
+        <div class="card-body"><div class="task-list" id="all-list"></div></div>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="section" id="sec-notes">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <p class="section-subtitle" style="margin-bottom:0">Quick notes for subjects, ideas, and reminders.</p>
+        <button class="btn btn-primary btn-sm" onclick="openNoteModal()"><i class="fas fa-plus"></i> New Note</button>
+      </div>
+      <div class="notes-grid" id="notes-grid"></div>
+    </div>
+
+    <!-- Timer -->
+    <div class="section" id="sec-timer">
+      <div class="grid2">
+        <div class="card">
+          <div class="card-body timer-wrap">
+            <div class="pomodoro-dots" id="pom-dots"><div class="pom-dot"></div><div class="pom-dot"></div><div class="pom-dot"></div><div class="pom-dot"></div></div>
+            <div class="timer-ring">
+              <svg width="200" height="200" viewBox="0 0 200 200">
+                <defs><linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#ec4899"/></linearGradient></defs>
+                <circle class="timer-track" cx="100" cy="100" r="85"/>
+                <circle id="timerRing" cx="100" cy="100" r="85"/>
+              </svg>
+              <div class="timer-inner">
+                <div class="timer-digits" id="timer-digits">25:00</div>
+                <div class="timer-mode" id="timer-mode">Focus</div>
+              </div>
+            </div>
+            <div class="session-select" style="margin-bottom:20px">
+              <div class="sess-btn active" onclick="setSession(25,'Focus')">25 min</div>
+              <div class="sess-btn" onclick="setSession(50,'Deep Work')">50 min</div>
+              <div class="sess-btn" onclick="setSession(5,'Short Break')">5 min break</div>
+              <div class="sess-btn" onclick="setSession(15,'Long Break')">15 min break</div>
+            </div>
+            <div class="timer-btns">
+              <button class="btn btn-primary" onclick="startTimer()"><i class="fas fa-play"></i> Start</button>
+              <button class="btn btn-ghost" onclick="pauseTimer()"><i class="fas fa-pause"></i> Pause</button>
+              <button class="btn btn-ghost" onclick="resetTimer()"><i class="fas fa-rotate-right"></i></button>
+            </div>
+            <p id="timer-status" style="font-size:13px;color:var(--text2)">🍅 25 min focus + 5 min break for peak productivity</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title"><i class="fas fa-info-circle"></i>Pomodoro Method</span></div>
+          <div class="card-body">
+            <div class="tips-list">
+              <div class="tip-item"><span class="tip-icon">🎯</span><span>Choose a task to work on before starting the timer.</span></div>
+              <div class="tip-item"><span class="tip-icon">🚫</span><span>Eliminate all distractions — phone, social media, notifications.</span></div>
+              <div class="tip-item"><span class="tip-icon">⏱️</span><span>Work until the timer rings. One Pomodoro = focused session.</span></div>
+              <div class="tip-item"><span class="tip-icon">☕</span><span>Take a short 5-min break. After 4 sessions, take 15-30 min.</span></div>
+              <div class="tip-item"><span class="tip-icon">📝</span><span>Track sessions completed to see your productive output.</span></div>
+            </div>
+            <div class="divider"></div>
+            <div style="text-align:center">
+              <div style="font-size:12px;color:var(--text3);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Sessions today</div>
+              <div style="font-size:32px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--accent2)" id="pom-count">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analytics -->
+    <div class="section" id="sec-analytics">
+      <div class="metrics-mini">
+        <div class="metric-mini"><div class="metric-mini-val" id="m-rate" style="color:var(--accent2)">0%</div><div class="metric-mini-lbl">Completion Rate</div></div>
+        <div class="metric-mini"><div class="metric-mini-val" id="m-hours" style="color:var(--green)">0h</div><div class="metric-mini-lbl">Total Study Hours</div></div>
+        <div class="metric-mini"><div class="metric-mini-val" id="m-streak" style="color:var(--red)">0🔥</div><div class="metric-mini-lbl">Day Streak</div></div>
+        <div class="metric-mini"><div class="metric-mini-val" id="m-eff" style="color:var(--amber)">0</div><div class="metric-mini-lbl">Tasks Completed</div></div>
+      </div>
+      <div class="analytics-grid">
+        <div class="card"><div class="card-header"><span class="card-title"><i class="fas fa-chart-pie"></i>Completion</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chartDone"></canvas></div></div></div>
+        <div class="card"><div class="card-header"><span class="card-title"><i class="fas fa-chart-bar"></i>By Difficulty</span></div><div class="card-body"><div class="chart-wrap"><canvas id="chartDiff"></canvas></div></div></div>
+      </div>
+      <div class="card full-card">
+        <div class="card-header"><span class="card-title"><i class="fas fa-brain"></i>Success Probability Predictions</span><span class="chip chip-pink" style="font-size:10px">ML Model</span></div>
+        <div class="card-body"><div class="predict-row" id="predict-row"></div></div>
+      </div>
+    </div>
+
+    <!-- Achievements -->
+    <div class="section" id="sec-achievements">
+      <p class="section-subtitle">Complete challenges and build your academic profile.</p>
+      <div class="ach-grid" id="ach-grid"></div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- Panel overlay -->
+<div class="panel-overlay" id="panel-overlay" onclick="closePanels()"></div>
+
+<!-- ─── NOTIFICATIONS PANEL ─── -->
+<div class="notif-panel" id="notif-panel">
+  <div class="notif-panel-header">
+    <span class="notif-panel-title"><i class="fas fa-bell" style="color:var(--accent2)"></i>Notifications</span>
+    <div class="notif-actions">
+      <button class="btn btn-ghost btn-sm" onclick="markAllRead()">Mark all read</button>
+      <div class="modal-close" onclick="closeNotifPanel()"><i class="fas fa-xmark"></i></div>
+    </div>
+  </div>
+  <div class="notif-tabs">
+    <div class="notif-tab active" onclick="switchNotifTab('all',this)">All</div>
+    <div class="notif-tab" onclick="switchNotifTab('unread',this)">Unread</div>
+    <div class="notif-tab" onclick="switchNotifTab('deadlines',this)">Deadlines</div>
+  </div>
+  <div class="notif-list" id="notif-list"></div>
+</div>
+
+<!-- ─── SETTINGS PANEL ─── -->
+<div class="settings-panel" id="settings-panel">
+  <div class="settings-panel-header">
+    <span class="settings-title"><i class="fas fa-sliders" style="color:var(--accent2)"></i>Settings</span>
+    <div class="modal-close" onclick="closeSettingsPanel()"><i class="fas fa-xmark"></i></div>
+  </div>
+
+  <!-- Profile -->
+  <div class="settings-section" style="padding-bottom:0">
+    <div class="profile-area">
+      <div class="avatar" id="avatar-display" onclick="focusNameEdit()">S</div>
+      <div class="profile-info">
+        <div class="profile-name" id="profile-name-display">Scholar</div>
+        <div class="profile-email" id="profile-email-display">student@studyai.pro</div>
+        <button class="profile-edit-btn" onclick="openProfileModal()">Edit Profile →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Appearance -->
+  <div class="settings-section">
+    <div class="settings-section-title">Appearance</div>
+    <div class="settings-item">
+      <div class="settings-item-info">
+        <div class="settings-item-label">Dark Mode</div>
+        <div class="settings-item-desc">Switch between dark and light theme</div>
+      </div>
+      <div class="toggle on" id="toggle-dark" onclick="toggleTheme(this)"></div>
+    </div>
+    <div class="settings-item">
+      <div class="settings-item-info">
+        <div class="settings-item-label">Accent Color</div>
+        <div class="settings-item-desc">Choose your primary accent color</div>
+        <div class="color-options">
+          <div class="color-opt active" style="background:#6366f1" data-color="#6366f1" data-c2="#818cf8" onclick="setAccent(this,'#6366f1','#818cf8','#a5b4fc')"></div>
+          <div class="color-opt" style="background:#ec4899" data-color="#ec4899" onclick="setAccent(this,'#ec4899','#f472b6','#fbcfe8')"></div>
+          <div class="color-opt" style="background:#22d3ee" data-color="#22d3ee" onclick="setAccent(this,'#22d3ee','#67e8f9','#a5f3fc')"></div>
+          <div class="color-opt" style="background:#34d399" data-color="#34d399" onclick="setAccent(this,'#34d399','#6ee7b7','#a7f3d0')"></div>
+          <div class="color-opt" style="background:#f59e0b" data-color="#f59e0b" onclick="setAccent(this,'#f59e0b','#fbbf24','#fde68a')"></div>
+          <div class="color-opt" style="background:#f87171" data-color="#f87171" onclick="setAccent(this,'#f87171','#fca5a5','#fecaca')"></div>
+        </div>
+      </div>
+    </div>
+    <div class="settings-item">
+      <div class="settings-item-info">
+        <div class="settings-item-label">Compact Mode</div>
+        <div class="settings-item-desc">Reduce spacing for more content</div>
+      </div>
+      <div class="toggle" id="toggle-compact" onclick="toggleSetting(this,'compact')"></div>
+    </div>
+  </div>
+
+  <!-- Notifications -->
+  <div class="settings-section" style="border-top:1px solid var(--border)">
+    <div class="settings-section-title">Notifications</div>
+    <div class="settings-item">
+      <div class="settings-item-info">
+        <div class="settings-item-label">Deadline Alerts</div>
+        <div class="settings-item-desc">Get notified 2 days before due dates</div>
+      </div>
+      <div class="toggle on" id="toggle-deadline" onclick="toggleSetting(this,'deadlineAlerts')"></div>
+    </div>
+    <div class="settings-item">
+      <div class="settings-item-info">
+        <div class="settings-item-label">Study Reminders</div>
+        <div class="settings-item-desc">Daily reminder to start studying</div>
+      </div>
+      <div class="toggle on" id="toggle-reminder" onclick="toggleSetting(this,'studyReminders')"></div>
+    </div>
+    <div class="settings-item">
+      <div class="settings-item-info">
+        <div class="settings-item-label">Achievement Alerts</div>
+        <div class="settings-item-desc">Celebrate when you unlock badges</div>
+      </div>
+      <div class="toggle on" id="toggle-ach" onclick="toggleSetting(this,'achAlerts')"></div>
+    </div>
+    <div class="settings-item">
+      <div class="settings-item-info">
+        <div class="settings-item-label">Streak Warnings</div>
+        <div class="settings-item-desc">Alert if your streak is at risk</div>
+      </div>
+      <div class="toggle on" id="toggle-streak" onclick="toggleSetting(this,'streakWarnings')"></div>
+    </div>
+  </div>
+
+  <!-- Study Goals -->
+  <div class="settings-section" style="border-top:1px solid var(--border)">
+    <div class="settings-section-title">Study Goals</div>
+    <div class="settings-item">
+      <div class="settings-item-info">
+        <div class="settings-item-label">Daily Study Hours</div>
+        <div class="settings-item-desc">Target hours per day for the planner</div>
+        <div class="slider-wrap">
+          <input type="range" min="1" max="12" value="4" id="hours-slider" oninput="updateHoursSlider(this)" style="--val:33.3%">
+          <span class="slider-val" id="hours-val">4h</span>
+        </div>
+      </div>
+    </div>
+    <div class="settings-item">
+      <div class="settings-item-info">
+        <div class="settings-item-label">Focus Mode</div>
+        <div class="settings-item-desc">Hide distractions during Pomodoro</div>
+      </div>
+      <div class="toggle" id="toggle-focus" onclick="toggleSetting(this,'focusMode')"></div>
+    </div>
+    <div class="settings-item">
+      <div class="settings-item-info">
+        <div class="settings-item-label">Auto-schedule Tasks</div>
+        <div class="settings-item-desc">AI automatically plans your week</div>
+      </div>
+      <div class="toggle on" id="toggle-autosched" onclick="toggleSetting(this,'autoSchedule')"></div>
+    </div>
+  </div>
+
+  <!-- ML Backend -->
+  <div class="settings-section" style="border-top:1px solid var(--border)">
+    <div class="settings-section-title">AI / ML Backend</div>
+    <div class="settings-item">
+      <div class="settings-item-info">
+        <div class="settings-item-label">Use ML Backend</div>
+        <div class="settings-item-desc">Predict success % and priority with a trained model instead of the built-in formula</div>
+      </div>
+      <div class="toggle" id="toggle-mlbackend" onclick="toggleSetting(this,'mlBackendEnabled')"></div>
+    </div>
+    <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:8px">
+      <div class="settings-item-info">
+        <div class="settings-item-label">Backend URL</div>
+        <div class="settings-item-desc">Your Render deployment, e.g. https://studyai-ml-backend.onrender.com</div>
+      </div>
+      <input id="ml-backend-url" type="text" class="input" placeholder="https://your-app.onrender.com"
+        style="width:100%;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:12px"
+        onchange="setMlBackendUrl(this.value)">
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-sm" style="flex:1" onclick="testMlBackend()"><i class="fas fa-plug" style="margin-right:6px"></i>Test Connection</button>
+        <button class="btn btn-sm" style="flex:1" onclick="syncMlBackend()"><i class="fas fa-arrows-rotate" style="margin-right:6px"></i>Train on My Data</button>
+      </div>
+      <div id="ml-backend-status" style="font-size:11px;color:var(--text2)">Not connected</div>
+    </div>
+  </div>
+
+  <!-- Data -->
+  <div class="settings-section" style="border-top:1px solid var(--border)">
+    <div class="settings-section-title">Data & Privacy</div>
+    <div class="settings-item">
+      <div class="settings-item-info">
+        <div class="settings-item-label">Export Data</div>
+        <div class="settings-item-desc">Download all your tasks as JSON</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="exportData()"><i class="fas fa-download"></i> Export</button>
+    </div>
+    <div class="settings-item">
+      <div class="settings-item-info">
+        <div class="settings-item-label">Clear All Tasks</div>
+        <div class="settings-item-desc">Permanently delete all tasks</div>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="clearAllTasks()"><i class="fas fa-trash"></i> Clear</button>
+    </div>
+    <div style="margin-top:16px;padding:12px;background:var(--bg3);border-radius:var(--r2);border:1px solid var(--border)">
+      <div style="font-size:11px;color:var(--text3);text-align:center;line-height:1.5">
+        <i class="fas fa-lock" style="margin-right:4px;color:var(--accent2)"></i>
+        All data stored locally on your device. No data sent to servers.
+      </div>
+    </div>
+  </div>
+
+  <!-- App Info -->
+  <div class="settings-section" style="border-top:1px solid var(--border)">
+    <div style="text-align:center;color:var(--text3);font-size:12px;line-height:1.8">
+      <div style="font-size:16px;margin-bottom:6px">🧠</div>
+      <strong style="color:var(--text2)">StudyAI Pro</strong><br>
+      Version 2.0.0 · Built with ❤️<br>
+      <span style="font-size:11px">AI-powered academic planner</span>
+    </div>
+  </div>
+</div>
+
+<!-- Task Modal -->
+<div class="modal-bg" id="modal-bg" onclick="closeModalBg(event)">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Create New Task</span><div class="modal-close" onclick="closeModal()"><i class="fas fa-xmark"></i></div></div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="form-group"><label>Task / Subject name</label><input id="m-name" type="text" placeholder="e.g. Data Structures assignment"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Deadline</label><input id="m-deadline" type="date"></div>
+        <div class="form-group"><label>Hours needed</label><input id="m-hours" type="number" value="2" step="0.5" min="0.5"></div>
+      </div>
+      <div class="form-group"><label>Difficulty level</label><select id="m-diff"><option value="1">⭐ Easy — low effort</option><option value="2" selected>⭐⭐ Medium — moderate effort</option><option value="3">⭐⭐⭐ Hard — high effort</option></select></div>
+      <div class="form-group"><label>Notes (optional)</label><textarea id="m-notes" rows="2" placeholder="Any extra details..." style="resize:vertical"></textarea></div>
+      <button class="btn btn-primary" onclick="addTaskFromModal()" style="width:100%;justify-content:center;padding:13px"><i class="fas fa-plus"></i> Create Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- Note Modal -->
+<div class="modal-bg" id="note-modal-bg" onclick="closeNoteModalBg(event)">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="note-modal-title">New Note</span><div class="modal-close" onclick="closeNoteModal()"><i class="fas fa-xmark"></i></div></div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="form-group"><label>Title</label><input id="note-title-inp" type="text" placeholder="Note title..."></div>
+      <div class="form-group"><label>Content</label><textarea id="note-body-inp" rows="6" placeholder="Write your note here..." style="resize:vertical"></textarea></div>
+      <div class="form-group">
+        <label>Color</label>
+        <div class="note-colors">
+          <div class="nc active" data-color="var(--accent)" style="background:#6366f1" onclick="selectNoteColor(this,'#6366f1')"></div>
+          <div class="nc" data-color="var(--pink)" style="background:#ec4899" onclick="selectNoteColor(this,'#ec4899')"></div>
+          <div class="nc" data-color="var(--green)" style="background:#34d399" onclick="selectNoteColor(this,'#34d399')"></div>
+          <div class="nc" data-color="var(--amber)" style="background:#fbbf24" onclick="selectNoteColor(this,'#fbbf24')"></div>
+          <div class="nc" data-color="var(--cyan)" style="background:#22d3ee" onclick="selectNoteColor(this,'#22d3ee')"></div>
+          <div class="nc" data-color="var(--red)" style="background:#f87171" onclick="selectNoteColor(this,'#f87171')"></div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="saveNote()" style="width:100%;justify-content:center;padding:13px"><i class="fas fa-save"></i> Save Note</button>
+    </div>
+  </div>
+</div>
+
+<!-- Profile Modal -->
+<div class="modal-bg" id="profile-modal-bg" onclick="closeProfileModalBg(event)">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Edit Profile</span><div class="modal-close" onclick="closeProfileModal()"><i class="fas fa-xmark"></i></div></div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="text-align:center;margin-bottom:8px">
+        <div class="avatar" id="avatar-preview" style="width:72px;height:72px;font-size:28px;margin:0 auto 10px">S</div>
+        <div style="font-size:12px;color:var(--text3)">Avatar updates from your name initial</div>
+      </div>
+      <div class="form-group"><label>Display Name</label><input id="prof-name" type="text" placeholder="Your name" oninput="previewAvatar(this.value)"></div>
+      <div class="form-group"><label>Email</label><input id="prof-email" type="email" placeholder="you@example.com"></div>
+      <div class="form-group"><label>University / School</label><input id="prof-school" type="text" placeholder="e.g. MIT, Harvard..."></div>
+      <div class="form-group"><label>Major / Field</label><input id="prof-major" type="text" placeholder="e.g. Computer Science"></div>
+      <button class="btn btn-primary" onclick="saveProfile()" style="width:100%;justify-content:center;padding:13px"><i class="fas fa-save"></i> Save Profile</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-area"></div>
+<div class="sb-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+
+<script>
+// ─── State ───────────────────────────────────────────────────────────────────
+let tasks = [];
+let notes = [];
+let notifications = [];
+let userMeta = {streak:0,lastActive:null,completionRate:0,pomSessions:0};
+let userProfile = {name:'Scholar',email:'student@studyai.pro',school:'',major:''};
+let userSettings = {darkMode:true,deadlineAlerts:true,studyReminders:true,achAlerts:true,streakWarnings:true,focusMode:false,autoSchedule:true,compact:false,hoursPerDay:4,accent:'#6366f1',mlBackendEnabled:false,mlBackendUrl:''};
+let charts = {};
+let noteColor = '#6366f1';
+let editingNoteId = null;
+let notifTab = 'all';
+
+// ─── ML Engine ────────────────────────────────────────────────────────────────
+const ML = {
+  priorityScore(task, allTasks, streak) {
+    const daysLeft = Math.ceil((new Date(task.deadline) - new Date()) / 86400000);
+    let dead = daysLeft<=0?100:daysLeft<=2?92:daysLeft<=5?72:daysLeft<=10?48:daysLeft<=20?28:15;
+    const diff = task.difficulty * 25;
+    const hrs  = Math.min(task.hours * 14, 100);
+    const strk = Math.min(streak * 4, 25);
+    const comp = allTasks.length ? Math.min((allTasks.filter(t=>t.completed).length/allTasks.length)*100,100) : 50;
+    return Math.min(Math.round(dead*.35 + diff*.25 + hrs*.20 + strk*.10 + comp*.10), 100);
+  },
+  successProb(task, meta) {
+    let p = 72;
+    const d = Math.ceil((new Date(task.deadline)-new Date())/86400000);
+    if(d<=0) p-=40; else if(d<task.hours) p-=25; else if(d>task.hours*4) p+=14;
+    if(meta.completionRate>75) p+=14; else if(meta.completionRate<35) p-=18;
+    if(task.difficulty===3) p-=18; else if(task.difficulty===1) p+=12;
+    if(meta.streak>10) p+=10; else if(meta.streak>5) p+=5;
+    return Math.min(Math.max(Math.round(p),0),100);
+  },
+  insights(tasks, meta) {
+    const pending = tasks.filter(t=>!t.completed);
+    if(!pending.length) return[{t:'success',m:'🎉 All tasks complete! Exceptional work — keep the streak alive!'}];
+    const msgs = [];
+    for(const t of pending.slice(0,3)) {
+      const prob  = successProbSmart(t, meta);
+      const days  = Math.ceil((new Date(t.deadline)-new Date())/86400000);
+      if(days<=0)      msgs.push({t:'danger',m:`🚨 "${t.name}" is overdue! Prioritize immediately.`});
+      else if(days<=2) msgs.push({t:'urgent',m:`⚠️ "${t.name}" due in ${days}d — schedule now!`});
+      else if(prob<45) msgs.push({t:'warn',m:`💡 "${t.name}" has ${prob}% success likelihood — break it into smaller steps.`});
+    }
+    if(meta.streak>7) msgs.push({t:'info',m:`🔥 Incredible ${meta.streak}-day streak! You're in the top tier of learners.`});
+    else msgs.push({t:'info',m:'💡 '+ML.productivityTip(meta)});
+    return msgs.slice(0,3);
+  },
+  productivityTip(m) {
+    if(m.streak>7) return 'Your consistency is world-class. Challenge yourself with a stretch goal!';
+    if(m.completionRate>70) return 'Strong completion rate! Try deeper focus sessions for complex work.';
+    if(m.completionRate<35) return 'Use the Pomodoro timer — 25 min bursts dramatically improve retention.';
+    return 'Peak cognitive hours are 8-11 AM. Schedule hard tasks for mornings.';
+  },
+  schedule(tasks, hoursPerDay=4) {
+    const pending = tasks.filter(t=>!t.completed).map(t=>({...t,score:priorityScoreSmart(t,tasks,userMeta.streak)})).sort((a,b)=>b.score-a.score);
+    const days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+    const sched={};const rem={};
+    days.forEach(d=>{sched[d]=[];rem[d]=hoursPerDay});
+    for(const task of pending){
+      let need=task.hours; let di=0;
+      while(need>0.4&&di<28){
+        const d=days[di%7];
+        if(rem[d]>=0.5){
+          const alloc=Math.min(Math.round(need*10)/10, rem[d]);
+          sched[d].push({name:task.name,hours:alloc,score:task.score,diff:task.difficulty});
+          need-=alloc; rem[d]-=alloc;
+        }
+        di++;
+      }
+    }
+    return sched;
+  }
+};
+
+// ─── ML Backend Integration ────────────────────────────────────────────────────
+// Calls the optional Render-hosted Flask+scikit-learn service for real
+// model-based predictions. Falls back silently to the local ML heuristic
+// above if the backend is disabled, unreachable, or errors out — so the
+// app never breaks without it.
+const aiCache = {}; // taskId -> {success_probability, priority_score, priority_band}
+let mlBackendChecked = false;
+
+function mlBackendBase() {
+  return (userSettings.mlBackendUrl || '').trim().replace(/\/+$/, '');
+}
+
+async function mlFetch(path, opts) {
+  const base = mlBackendBase();
+  if (!userSettings.mlBackendEnabled || !base) return null;
+  try {
+    const res = await fetch(base + path, {
+      method: opts?.method || 'GET',
+      headers: {'Content-Type': 'application/json'},
+      body: opts?.body ? JSON.stringify(opts.body) : undefined,
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.json();
+  } catch (e) {
+    console.warn('ML backend unreachable, using local heuristic:', e.message);
+    return null;
+  }
+}
+
+function taskToBackendPayload(t) {
+  const days_left = Math.ceil((new Date(t.deadline) - new Date()) / 86400000);
+  return {
+    id: t.id,
+    days_left,
+    hours: t.hours,
+    difficulty: t.difficulty,
+    completion_rate: userMeta.completionRate || 0,
+    streak: userMeta.streak || 0,
+  };
+}
+
+// Refresh predictions for all pending tasks in one batched call, cache them,
+// then re-render so the UI picks up the model-backed numbers.
+async function refreshAiCache() {
+  if (!userSettings.mlBackendEnabled) return;
+  const pending = tasks.filter(t => !t.completed);
+  if (!pending.length) return;
+  const data = await mlFetch('/predict/batch', {method: 'POST', body: {tasks: pending.map(taskToBackendPayload)}});
+  if (!data || !data.predictions) return;
+  data.predictions.forEach(p => { aiCache[p.id] = p; });
+  renderInsights(); renderRecentList(); renderAllList(); renderAnalytics();
+}
+
+// Wraps ML.successProb / ML.priorityScore: use backend result if cached, else heuristic.
+function successProbSmart(t, meta) {
+  const c = aiCache[t.id];
+  if (userSettings.mlBackendEnabled && c) return Math.round(c.success_probability);
+  return ML.successProb(t, meta);
+}
+function priorityScoreSmart(t, allTasks, streak) {
+  const c = aiCache[t.id];
+  if (userSettings.mlBackendEnabled && c) return Math.round(c.priority_score);
+  return ML.priorityScore(t, allTasks, streak);
+}
+
+function setMlBackendUrl(url) {
+  userSettings.mlBackendUrl = url.trim();
+  save();
+}
+
+async function testMlBackend() {
+  const statusEl = qs('#ml-backend-status');
+  statusEl.textContent = 'Testing…'; statusEl.style.color = 'var(--text2)';
+  const base = mlBackendBase();
+  if (!base) { statusEl.textContent = 'Enter a backend URL first.'; statusEl.style.color = 'var(--red)'; return; }
+  try {
+    const res = await fetch(base + '/health');
+    const data = await res.json();
+    if (data.status === 'ok') {
+      statusEl.textContent = '✓ Connected — backend is live.'; statusEl.style.color = 'var(--green)';
+      showToastMsg('ML backend connected 🤖', 'success');
+      refreshAiCache();
+    } else { throw new Error('bad response'); }
+  } catch (e) {
+    statusEl.textContent = '✗ Could not reach backend. Check the URL and that the Render service is awake.';
+    statusEl.style.color = 'var(--red)';
+  }
+}
+
+// Sends the user's completed task history so the backend model can retrain
+// on real outcomes instead of only the synthetic bootstrap data.
+async function syncMlBackend() {
+  const statusEl = qs('#ml-backend-status');
+  const base = mlBackendBase();
+  if (!base) { statusEl.textContent = 'Enter a backend URL first.'; statusEl.style.color = 'var(--red)'; return; }
+
+  const history = tasks.filter(t => t.completed || Math.ceil((new Date(t.deadline)-new Date())/86400000) < 0).map(t => {
+    const created = t.created ? new Date(t.created) : new Date();
+    const deadline = new Date(t.deadline);
+    const days_left_at_creation = Math.ceil((deadline - created) / 86400000);
+    const overdue = Math.ceil((new Date(t.deadline) - new Date())/86400000) < 0;
+    return {
+      days_left_at_creation,
+      hours: t.hours,
+      difficulty: t.difficulty,
+      completion_rate: userMeta.completionRate || 0,
+      streak: userMeta.streak || 0,
+      completed_on_time: !!t.completed && !overdue,
+    };
+  });
+
+  if (history.length < 5) {
+    statusEl.textContent = `Need at least 5 finished/overdue tasks to train (you have ${history.length}).`;
+    statusEl.style.color = 'var(--amber)';
+    return;
+  }
+
+  statusEl.textContent = 'Training…'; statusEl.style.color = 'var(--text2)';
+  const data = await mlFetch('/train', {method: 'POST', body: {history}});
+  if (data && data.trained) {
+    statusEl.textContent = `✓ Trained on ${data.rows_used_this_call} tasks (${data.total_real_samples_seen} total seen).`;
+    statusEl.style.color = 'var(--green)';
+    showToastMsg('Model retrained on your data 📈', 'success');
+    refreshAiCache();
+  } else {
+    statusEl.textContent = (data && data.reason) || 'Training failed — check backend logs.';
+    statusEl.style.color = 'var(--red)';
+  }
+}
+
+// ─── Notifications Engine ─────────────────────────────────────────────────────
+function generateNotifications() {
+  notifications = [];
+  const now = Date.now();
+
+  // Deadline alerts
+  if(userSettings.deadlineAlerts) {
+    tasks.filter(t=>!t.completed).forEach(t=>{
+      const days = Math.ceil((new Date(t.deadline)-new Date())/86400000);
+      if(days<=0) {
+        notifications.push({id:'od-'+t.id,type:'deadline',icon:'🚨',iconBg:'rgba(248,113,113,.15)',title:'Overdue Task!',body:`"${t.name}" was due and hasn't been completed.`,time:'Now',unread:true,urgency:'red',taskId:t.id});
+      } else if(days<=2) {
+        notifications.push({id:'due-'+t.id,type:'deadline',icon:'⚠️',iconBg:'rgba(251,191,36,.15)',title:'Due Soon',body:`"${t.name}" is due in ${days} day${days>1?'s':''}. Start working on it!`,time:days===1?'Tomorrow':'2 days',unread:true,urgency:'amber',taskId:t.id});
+      } else if(days<=5) {
+        notifications.push({id:'week-'+t.id,type:'deadline',icon:'📅',iconBg:'rgba(99,102,241,.15)',title:'Upcoming Deadline',body:`"${t.name}" is due in ${days} days.`,time:`${days} days`,unread:false,urgency:'blue',taskId:t.id});
+      }
+    });
+  }
+
+  // Streak warning
+  if(userSettings.streakWarnings && userMeta.streak>2) {
+    notifications.push({id:'streak',type:'streak',icon:'🔥',iconBg:'rgba(248,113,113,.12)',title:`${userMeta.streak}-Day Streak Active`,body:"Keep going! Study something today to maintain your streak.",time:'Today',unread:false,urgency:'blue'});
+  }
+
+  // Study reminder
+  if(userSettings.studyReminders) {
+    const pending = tasks.filter(t=>!t.completed);
+    if(pending.length>0) {
+      notifications.push({id:'reminder',type:'reminder',icon:'📚',iconBg:'rgba(52,211,153,.12)',title:'Study Reminder',body:`You have ${pending.length} pending task${pending.length>1?'s':''}. Time to focus!`,time:'Today',unread:false,urgency:'green'});
+    }
+  }
+
+  // Achievements
+  if(userSettings.achAlerts) {
+    ACHIEVEMENTS.forEach(a=>{
+      if(a.check()&&!userMeta['ach_'+a.id]) {
+        notifications.push({id:'ach-'+a.id,type:'achievement',icon:a.emoji,iconBg:'rgba(99,102,241,.15)',title:`Achievement Unlocked: ${a.name}`,body:a.desc,time:'Just now',unread:true,urgency:'blue'});
+        userMeta['ach_'+a.id]=true;
+      }
+    });
+  }
+
+  updateBadge();
+  renderNotifList();
+}
+
+function updateBadge() {
+  const unread = notifications.filter(n=>n.unread).length;
+  qs('#notifBadge').textContent = unread;
+  const nb = qs('#nav-notif-count');
+  if(nb) { nb.textContent=unread; nb.style.display=unread>0?'flex':'none'; }
+}
+
+function renderNotifList() {
+  const el = qs('#notif-list');
+  if(!el) return;
+  let list = [...notifications];
+  if(notifTab==='unread') list=list.filter(n=>n.unread);
+  if(notifTab==='deadlines') list=list.filter(n=>n.type==='deadline');
+  list.sort((a,b)=>(b.unread?1:0)-(a.unread?1:0));
+
+  if(!list.length) {
+    el.innerHTML=`<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications${notifTab!=='all'?' in this category':''}</p></div>`;
+    return;
+  }
+  el.innerHTML = list.map(n=>`
+    <div class="notif-item ${n.unread?'unread-'+n.urgency:''}" onclick="markRead('${n.id}');this.classList.remove('unread-red','unread-amber','unread-blue')">
+      <div class="notif-icon" style="background:${n.iconBg}">${n.icon}</div>
+      <div class="notif-content">
+        <div class="notif-title">${n.title}${n.unread?'<span class="chip chip-blue" style="font-size:9px;margin-left:6px;padding:1px 6px">New</span>':''}</div>
+        <div class="notif-body">${n.body}</div>
+        <div class="notif-time"><i class="fas fa-clock" style="margin-right:3px;font-size:9px"></i>${n.time}</div>
+      </div>
+    </div>`).join('');
+}
+
+function switchNotifTab(tab, el) {
+  notifTab = tab;
+  document.querySelectorAll('.notif-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderNotifList();
+}
+
+function markRead(id) {
+  const n = notifications.find(x=>x.id===id);
+  if(n) n.unread=false;
+  updateBadge();
+}
+
+function markAllRead() {
+  notifications.forEach(n=>n.unread=false);
+  updateBadge();
+  renderNotifList();
+  showToastMsg('All notifications marked as read','info');
+}
+
+// ─── Data ─────────────────────────────────────────────────────────────────────
+function load() {
+  const raw = localStorage.getItem('sap_tasks');
+  if(raw) { tasks = JSON.parse(raw); }
+  else {
+    const t = n => new Date(Date.now()+n*86400000).toISOString().split('T')[0];
+    tasks = [
+      {id:1,name:'Neural Networks Project',deadline:t(3),difficulty:3,hours:6,completed:false,notes:'',created:Date.now()},
+      {id:2,name:'Algorithm Analysis',deadline:t(5),difficulty:2,hours:4,completed:false,notes:'',created:Date.now()},
+      {id:3,name:'Database Schema Design',deadline:t(7),difficulty:2,hours:3,completed:false,notes:'',created:Date.now()},
+      {id:4,name:'Research Paper Summary',deadline:t(2),difficulty:1,hours:2,completed:false,notes:'',created:Date.now()},
+    ];
+  }
+  const rawM = localStorage.getItem('sap_meta');
+  if(rawM) userMeta = JSON.parse(rawM);
+  const rawP = localStorage.getItem('sap_profile');
+  if(rawP) userProfile = {...userProfile,...JSON.parse(rawP)};
+  const rawS = localStorage.getItem('sap_settings');
+  if(rawS) userSettings = {...userSettings,...JSON.parse(rawS)};
+  const rawN = localStorage.getItem('sap_notes');
+  if(rawN) notes = JSON.parse(rawN);
+  save();
+}
+
+function save() {
+  localStorage.setItem('sap_tasks', JSON.stringify(tasks));
+  localStorage.setItem('sap_meta', JSON.stringify(userMeta));
+  localStorage.setItem('sap_profile', JSON.stringify(userProfile));
+  localStorage.setItem('sap_settings', JSON.stringify(userSettings));
+  localStorage.setItem('sap_notes', JSON.stringify(notes));
+}
+
+// ─── Theme & Settings ──────────────────────────────────────────────────────────
+function applySettings() {
+  if(!userSettings.darkMode) document.body.classList.add('light');
+  else document.body.classList.remove('light');
+  if(userSettings.compact) document.body.style.fontSize='13px';
+  else document.body.style.fontSize='14px';
+  // Accent
+  const r=document.documentElement;
+  // stored on init
+  qs('#toggle-dark').classList.toggle('on',userSettings.darkMode);
+  qs('#toggle-compact').classList.toggle('on',userSettings.compact);
+  qs('#toggle-deadline').classList.toggle('on',userSettings.deadlineAlerts);
+  qs('#toggle-reminder').classList.toggle('on',userSettings.studyReminders);
+  qs('#toggle-ach').classList.toggle('on',userSettings.achAlerts);
+  qs('#toggle-streak').classList.toggle('on',userSettings.streakWarnings);
+  qs('#toggle-focus').classList.toggle('on',userSettings.focusMode);
+  qs('#toggle-autosched').classList.toggle('on',userSettings.autoSchedule);
+  qs('#toggle-mlbackend').classList.toggle('on',userSettings.mlBackendEnabled);
+  if(qs('#ml-backend-url')) qs('#ml-backend-url').value = userSettings.mlBackendUrl || '';
+  const slider=qs('#hours-slider');
+  if(slider){slider.value=userSettings.hoursPerDay;updateHoursSlider(slider);}
+}
+
+function toggleTheme(el) {
+  el.classList.toggle('on');
+  userSettings.darkMode = el.classList.contains('on');
+  document.body.classList.toggle('light',!userSettings.darkMode);
+  save();
+  showToastMsg(userSettings.darkMode?'Dark mode on':'Light mode on','info');
+}
+
+function toggleSetting(el, key) {
+  el.classList.toggle('on');
+  userSettings[key] = el.classList.contains('on');
+  save();
+  showToastMsg(`${key.replace(/([A-Z])/g,' $1')} ${userSettings[key]?'enabled':'disabled'}`,'info');
+}
+
+function setAccent(el, c1, c2, c3) {
+  document.querySelectorAll('.color-opt').forEach(o=>o.classList.remove('active'));
+  el.classList.add('active');
+  const r=document.documentElement;
+  r.style.setProperty('--accent',c1);
+  r.style.setProperty('--accent2',c2||c1);
+  r.style.setProperty('--accent3',c3||c1);
+  r.style.setProperty('--glow',c1+'55');
+  userSettings.accent=c1;
+  save();
+}
+
+function updateHoursSlider(el) {
+  const val=parseInt(el.value);
+  const pct=((val-1)/(12-1)*100).toFixed(1);
+  el.style.setProperty('--val',pct+'%');
+  qs('#hours-val').textContent=val+'h';
+  userSettings.hoursPerDay=val;
+  save();
+}
+
+function exportData() {
+  const data = {tasks,notes,userProfile,userMeta,exported:new Date().toISOString()};
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='studyai-data.json';
+  a.click();
+  showToastMsg('Data exported successfully!','success');
+}
+
+function clearAllTasks() {
+  if(!confirm('Delete ALL tasks permanently? This cannot be undone.')) return;
+  tasks=[];save();refresh();renderSchedule();
+  showToastMsg('All tasks cleared','info');
+}
+
+// ─── Profile ──────────────────────────────────────────────────────────────────
+function updateProfileUI() {
+  const name = userProfile.name||'Scholar';
+  qs('#user-display-name').textContent=name;
+  qs('#profile-name-display').textContent=name;
+  qs('#profile-email-display').textContent=userProfile.email||'student@studyai.pro';
+  const initial=name[0].toUpperCase();
+  qs('#avatar-display').textContent=initial;
+  qs('#avatar-preview').textContent=initial;
+}
+
+function openProfileModal() {
+  qs('#prof-name').value=userProfile.name||'';
+  qs('#prof-email').value=userProfile.email||'';
+  qs('#prof-school').value=userProfile.school||'';
+  qs('#prof-major').value=userProfile.major||'';
+  previewAvatar(userProfile.name||'');
+  qs('#profile-modal-bg').classList.add('open');
+}
+function closeProfileModal(){qs('#profile-modal-bg').classList.remove('open')}
+function closeProfileModalBg(e){if(e.target===qs('#profile-modal-bg'))closeProfileModal()}
+function focusNameEdit(){openProfileModal()}
+function previewAvatar(name){qs('#avatar-preview').textContent=(name||'S')[0].toUpperCase()}
+
+function saveProfile() {
+  userProfile.name=v('prof-name')||'Scholar';
+  userProfile.email=v('prof-email')||'student@studyai.pro';
+  userProfile.school=v('prof-school')||'';
+  userProfile.major=v('prof-major')||'';
+  save();updateProfileUI();closeProfileModal();
+  showToastMsg('Profile updated!','success');
+}
+
+// ─── Notes ────────────────────────────────────────────────────────────────────
+function renderNotes() {
+  const el=qs('#notes-grid');if(!el)return;
+  if(!notes.length){el.innerHTML='<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-sticky-note"></i><p>No notes yet. Create your first note!</p></div>';return;}
+  el.innerHTML=notes.map(n=>`
+    <div class="note-card" onclick="editNote(${n.id})">
+      <div class="note-color-bar" style="background:${n.color||'#6366f1'}"></div>
+      <div class="note-del" onclick="event.stopPropagation();deleteNote(${n.id})"><i class="fas fa-trash-can"></i></div>
+      <div class="note-card-title">${n.title||'Untitled'}</div>
+      <div class="note-card-body">${n.body||'No content'}</div>
+      <div class="note-card-footer">
+        <span><i class="fas fa-clock" style="margin-right:3px;font-size:9px"></i>${new Date(n.created).toLocaleDateString()}</span>
+        <span>${(n.body||'').split(' ').length} words</span>
+      </div>
+    </div>`).join('');
+}
+
+function openNoteModal(id=null) {
+  editingNoteId=id;
+  if(id) {
+    const n=notes.find(x=>x.id===id);
+    qs('#note-modal-title').textContent='Edit Note';
+    qs('#note-title-inp').value=n.title||'';
+    qs('#note-body-inp').value=n.body||'';
+    noteColor=n.color||'#6366f1';
+  } else {
+    qs('#note-modal-title').textContent='New Note';
+    qs('#note-title-inp').value='';
+    qs('#note-body-inp').value='';
+    noteColor='#6366f1';
+  }
+  document.querySelectorAll('.nc').forEach(el=>{el.classList.remove('active')});
+  const first=document.querySelector('.nc');if(first)first.classList.add('active');
+  qs('#note-modal-bg').classList.add('open');
+  setTimeout(()=>qs('#note-title-inp')?.focus(),150);
+}
+
+function editNote(id){openNoteModal(id)}
+function closeNoteModal(){qs('#note-modal-bg').classList.remove('open')}
+function closeNoteModalBg(e){if(e.target===qs('#note-modal-bg'))closeNoteModal()}
+function selectNoteColor(el,color){noteColor=color;document.querySelectorAll('.nc').forEach(x=>x.classList.remove('active'));el.classList.add('active');}
+
+function saveNote() {
+  const title=v('note-title-inp')||'Untitled';
+  const body=v('note-body-inp')||'';
+  if(editingNoteId) {
+    const n=notes.find(x=>x.id===editingNoteId);
+    n.title=title;n.body=body;n.color=noteColor;n.updated=Date.now();
+  } else {
+    notes.unshift({id:Date.now(),title,body,color:noteColor,created:Date.now()});
+  }
+  save();closeNoteModal();renderNotes();
+  showToastMsg(editingNoteId?'Note updated':'Note saved 📝','success');
+}
+
+function deleteNote(id) {
+  if(!confirm('Delete this note?'))return;
+  notes=notes.filter(x=>x.id!==id);save();renderNotes();
+  showToastMsg('Note deleted','info');
+}
+
+// ─── Greeting & streak ────────────────────────────────────────────────────────
+function setGreeting(){const h=new Date().getHours();document.getElementById('greeting').textContent=h<12?'Morning':h<17?'Afternoon':'Evening';}
+function tickStreak(){const today=new Date().toDateString();if(userMeta.lastActive!==today){const yest=new Date();yest.setDate(yest.getDate()-1);userMeta.streak=userMeta.lastActive===yest.toDateString()?userMeta.streak+1:1;userMeta.lastActive=today;}}
+
+// ─── Refresh ──────────────────────────────────────────────────────────────────
+function refresh() {
+  tickStreak();
+  const total=tasks.length,done=tasks.filter(t=>t.completed).length,pend=total-done;
+  const rate=total>0?Math.round(done/total*100):0;
+  userMeta.completionRate=rate;
+
+  qs('#stat-total').textContent=total;qs('#stat-done').textContent=done;
+  qs('#stat-pend').textContent=pend;qs('#stat-streak').textContent=userMeta.streak;
+  qs('#delta-tasks').textContent=total+' tasks';qs('#delta-done').textContent=rate+'%';
+  qs('#delta-pend').textContent=pend+' left';
+
+  const barW=v=>Math.min(Math.max(v,2),100)+'%';
+  qs('#bar-total').style.width=barW(total>0?100:0);
+  qs('#bar-done').style.width=barW(rate);
+  qs('#bar-pend').style.width=barW(total>0?(pend/total)*100:0);
+  qs('#bar-streak').style.width=barW(Math.min(userMeta.streak*8,100));
+
+  const ins=ML.insights(tasks,userMeta);
+  qs('#aiTip').textContent=ins[0]?.m.replace(/[🎉⚠️🚨💡🔥]/g,'').trim()||'';
+
+  renderInsights();renderRecentList();renderAllList();renderAchievements();
+  if(qs('#m-rate')){qs('#m-rate').textContent=rate+'%';qs('#m-hours').textContent=tasks.reduce((s,t)=>s+t.hours,0)+'h';qs('#m-streak').textContent=userMeta.streak+'🔥';qs('#m-eff').textContent=done;}
+  renderUrgencyRow();
+  generateNotifications();
+  save();
+  if(userSettings.mlBackendEnabled) refreshAiCache();
+}
+
+function renderInsights(){
+  const el=qs('#ai-insights-dash');if(!el)return;
+  const ins=ML.insights(tasks,userMeta);
+  el.innerHTML=ins.map(i=>`<div class="insight-box">${i.m}</div>`).join('')||'<div class="empty-state"><i class="fas fa-robot"></i><p>Add tasks to get AI insights</p></div>';
+}
+
+function renderUrgencyRow(){
+  const el=qs('#urgency-row');if(!el)return;
+  const urgent=tasks.filter(t=>!t.completed&&Math.ceil((new Date(t.deadline)-new Date())/86400000)<=3);
+  el.innerHTML=urgent.length?urgent.map(t=>{const d=Math.ceil((new Date(t.deadline)-new Date())/86400000);return`<span class="chip chip-red"><i class="fas fa-circle-exclamation"></i>${t.name} — ${d<=0?'Overdue':d+'d left'}</span>`;}).join(''):'<span class="chip chip-green"><i class="fas fa-circle-check"></i>No urgent tasks</span>';
+}
+
+function taskHTML(t,showPriority=false){
+  const score=priorityScoreSmart(t,tasks,userMeta.streak);
+  const days=Math.ceil((new Date(t.deadline)-new Date())/86400000);
+  const diffLbl=t.difficulty===3?'Hard':t.difficulty===2?'Medium':'Easy';
+  const diffCls=t.difficulty===3?'chip-red':t.difficulty===2?'chip-amber':'chip-green';
+  return`<div class="task-item" id="ti-${t.id}">
+    <div class="task-check ${t.completed?'done':''}" onclick="toggleTask(${t.id})"></div>
+    <div class="task-info">
+      <div class="task-name ${t.completed?'done-text':''}">${t.name}</div>
+      <div class="task-meta">
+        <span><i class="fas fa-calendar-day" style="margin-right:3px;font-size:10px"></i>${t.deadline}</span>
+        <span><i class="fas fa-clock" style="margin-right:3px;font-size:10px"></i>${t.hours}h</span>
+        <span class="chip ${diffCls}" style="font-size:10px">${diffLbl}</span>
+        ${showPriority?`<span class="chip chip-blue" style="font-size:10px">P:${score}</span>`:''}
+        ${days<=2&&!t.completed?`<span class="chip chip-red" style="font-size:10px">${days<=0?'Overdue':days+'d'}</span>`:''}
+      </div>
+    </div>
+    <div class="task-actions"><button class="btn btn-danger btn-sm" onclick="deleteTask(${t.id})"><i class="fas fa-trash-can"></i></button></div>
+  </div>`;
+}
+
+function renderRecentList(){const el=qs('#recent-list');if(!el)return;const show=tasks.slice().sort((a,b)=>b.created-a.created).slice(0,5);el.innerHTML=show.length?show.map(t=>taskHTML(t)).join(''):'<div class="empty-state"><i class="fas fa-clipboard-list"></i><p>No tasks yet — create your first one below!</p></div>';}
+
+let taskFilter='all';
+function filterTasks(f){taskFilter=f;['all','pend','done'].forEach(k=>qs('#f-'+k)?.classList.remove('btn-primary'));qs('#f-'+f)?.classList.add('btn-primary');renderAllList();}
+
+function renderAllList(){const el=qs('#all-list');if(!el)return;let list=[...tasks].sort((a,b)=>priorityScoreSmart(b,tasks,userMeta.streak)-priorityScoreSmart(a,tasks,userMeta.streak));if(taskFilter==='pending')list=list.filter(t=>!t.completed);if(taskFilter==='done')list=list.filter(t=>t.completed);el.innerHTML=list.length?list.map(t=>taskHTML(t,true)).join(''):'<div class="empty-state"><i class="fas fa-box-open"></i><p>No tasks in this filter.</p></div>';}
+
+function buildTask(name,deadline,diff,hours,notes=''){if(!name.trim()){showToastMsg('Please enter a task name','warn');return null}return{id:Date.now(),name:name.trim(),deadline:deadline||new Date(Date.now()+7*86400000).toISOString().split('T')[0],difficulty:parseInt(diff),hours:parseFloat(hours)||2,completed:false,notes,created:Date.now()};}
+function addTask(){const t=buildTask(v('q-name'),v('q-deadline'),v('q-diff'),v('q-hours'));if(!t)return;tasks.push(t);qs('#q-name').value='';qs('#q-hours').value='2';refresh();renderSchedule();showToastMsg(`"${t.name}" added 🎉`,'success');}
+function addTaskFromModal(){const t=buildTask(v('m-name'),v('m-deadline'),v('m-diff'),v('m-hours'),v('m-notes'));if(!t)return;tasks.push(t);closeModal();refresh();renderSchedule();showToastMsg(`"${t.name}" created`,'success');}
+function toggleTask(id){const t=tasks.find(x=>x.id===id);if(!t)return;t.completed=!t.completed;if(t.completed)showToastMsg(`✅ Completed: ${t.name}`,'success');refresh();renderSchedule();}
+function deleteTask(id){const t=tasks.find(x=>x.id===id);if(!t)return;if(!confirm(`Delete "${t.name}"?`))return;tasks=tasks.filter(x=>x.id!==id);refresh();renderSchedule();showToastMsg('Task removed','info');}
+
+function renderSchedule(){const el=qs('#schedule-grid');if(!el)return;const sched=ML.schedule(tasks,userSettings.hoursPerDay);const days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];const todayName=new Date().toLocaleDateString('en-US',{weekday:'long'});el.innerHTML=days.map(d=>`<div class="day-col ${d===todayName?'today':''}"><div class="day-name">${d.slice(0,3)}${d===todayName?' •':''}</div>${sched[d]?.length?sched[d].map(s=>`<div class="sched-task"><strong>${s.name}</strong><span>${s.hours}h · P:${s.score}</span></div>`).join(''):'<div class="day-free">✨ Free</div>'}</div>`).join('');}
+
+function renderAnalytics(){
+  const done=tasks.filter(t=>t.completed).length,pend=tasks.length-done;
+  const dc={1:0,2:0,3:0};tasks.forEach(t=>dc[t.difficulty]++);
+  const cfg={maintainAspectRatio:false,plugins:{legend:{labels:{color:'#9090b0',font:{family:'Sora',size:11}}}}};
+  if(charts.done)charts.done.destroy();
+  charts.done=new Chart(qs('#chartDone'),{type:'doughnut',data:{labels:['Completed','Pending'],datasets:[{data:[done,pend],backgroundColor:['#34d399','#fbbf24'],borderWidth:0,borderRadius:4}]},options:{...cfg,cutout:'70%'}});
+  if(charts.diff)charts.diff.destroy();
+  charts.diff=new Chart(qs('#chartDiff'),{type:'bar',data:{labels:['Easy','Medium','Hard'],datasets:[{label:'Tasks',data:[dc[1],dc[2],dc[3]],backgroundColor:['rgba(52,211,153,.7)','rgba(251,191,36,.7)','rgba(248,113,113,.7)'],borderRadius:8,borderWidth:0}]},options:{...cfg,scales:{x:{ticks:{color:'#9090b0',font:{family:'Sora'}},grid:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'#9090b0',font:{family:'Sora'}},grid:{color:'rgba(255,255,255,.04)'}}}}});
+  const el=qs('#predict-row');if(!el)return;
+  const pending=tasks.filter(t=>!t.completed).slice(0,6);
+  el.innerHTML=pending.length?pending.map(t=>{const p=successProbSmart(t,userMeta);const col=p>70?'#34d399':p>40?'#fbbf24':'#f87171';return`<div class="predict-item"><span class="predict-name" title="${t.name}">${t.name}</span><div class="predict-bar"><div class="predict-fill" style="width:${p}%;background:${col}"></div></div><span class="predict-pct" style="color:${col}">${p}%</span></div>`;}).join(''):'<div class="empty-state"><i class="fas fa-chart-line"></i><p>Complete or add tasks to see predictions.</p></div>';
+}
+
+// ─── Achievements ─────────────────────────────────────────────────────────────
+const ACHIEVEMENTS = [
+  {id:'first',emoji:'🎯',name:'First Step',desc:'Complete your first task',check:()=>tasks.filter(t=>t.completed).length>=1},
+  {id:'fire',emoji:'🔥',name:'On Fire',desc:'Achieve a 7-day streak',check:()=>userMeta.streak>=7},
+  {id:'worker',emoji:'⭐',name:'Hard Worker',desc:'Complete 10 tasks',check:()=>tasks.filter(t=>t.completed).length>=10},
+  {id:'scholar',emoji:'📚',name:'Scholar',desc:'Log 20+ study hours',check:()=>tasks.filter(t=>t.completed).reduce((s,t)=>s+t.hours,0)>=20},
+  {id:'master',emoji:'🏆',name:'Master',desc:'100% completion rate',check:()=>userMeta.completionRate===100&&tasks.length>0},
+  {id:'aiuser',emoji:'🤖',name:'AI Learner',desc:'Create 5+ tasks',check:()=>tasks.length>=5},
+  {id:'pom',emoji:'🍅',name:'Pomodoro Pro',desc:'Complete 10 sessions',check:()=>userMeta.pomSessions>=10},
+  {id:'all',emoji:'💎',name:'Perfectionist',desc:'Complete 25 tasks',check:()=>tasks.filter(t=>t.completed).length>=25},
+  {id:'diverse',emoji:'🌈',name:'Well-Rounded',desc:'Add easy, medium & hard tasks',check:()=>[1,2,3].every(d=>tasks.some(t=>t.difficulty===d))},
+  {id:'notes5',emoji:'📝',name:'Note Taker',desc:'Create 5 notes',check:()=>notes.length>=5},
+  {id:'earlybird',emoji:'🌅',name:'Early Bird',desc:'Start studying before 9 AM',check:()=>new Date().getHours()<9&&tasks.filter(t=>t.completed).length>0},
+  {id:'nightowl',emoji:'🦉',name:'Night Owl',desc:'Complete a task after 10 PM',check:()=>new Date().getHours()>=22&&tasks.filter(t=>t.completed).length>0},
+];
+
+function renderAchievements(){const el=qs('#ach-grid');if(!el)return;el.innerHTML=ACHIEVEMENTS.map(a=>{const ok=a.check();return`<div class="ach-card ${ok?'unlocked':'locked'}">${ok?'<span style="position:absolute;top:10px;right:10px" class="chip chip-green" style="font-size:10px">Unlocked</span>':''}<span class="ach-emoji">${a.emoji}</span><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div>`;}).join('');}
+
+// ─── Timer ────────────────────────────────────────────────────────────────────
+let timerSec=25*60,timerTotal=25*60,timerIv=null,timerRunning=false,pomsDone=0;
+const CIRC=2*Math.PI*85;
+function setSession(min,label){resetTimer();timerSec=timerTotal=min*60;qs('#timer-mode').textContent=label;qs('#timer-digits').textContent=fmt(timerSec);updateRing();document.querySelectorAll('.sess-btn').forEach(b=>{b.classList.toggle('active',b.textContent.includes(min+' min')||(min===5&&b.textContent.includes('5'))||(min===15&&b.textContent.includes('15')));});}
+function updateRing(){const pct=timerSec/timerTotal;qs('#timerRing').style.strokeDashoffset=CIRC*(1-pct);qs('#timerRing').style.strokeDasharray=CIRC;}
+function fmt(s){return`${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`}
+function startTimer(){if(timerRunning)return;timerRunning=true;qs('#timer-status').textContent='🎯 Session active — stay focused!';timerIv=setInterval(()=>{timerSec--;qs('#timer-digits').textContent=fmt(timerSec);updateRing();if(timerSec<=0){clearInterval(timerIv);timerRunning=false;pomsDone++;qs('#pom-count').textContent=pomsDone;userMeta.pomSessions=(userMeta.pomSessions||0)+1;save();updatePomDots();showToastMsg('🎉 Pomodoro complete! Take a break.','success');qs('#timer-status').textContent='✅ Session complete! Take a well-earned break.';}},1000);}
+function pauseTimer(){clearInterval(timerIv);timerRunning=false;qs('#timer-status').textContent='⏸ Paused — press Start to resume.';}
+function resetTimer(){clearInterval(timerIv);timerRunning=false;timerSec=timerTotal;qs('#timer-digits').textContent=fmt(timerSec);updateRing();qs('#timer-status').textContent='🔄 Ready — press Start when you are.';}
+function updatePomDots(){const dots=qs('#pom-dots').children;for(let i=0;i<dots.length;i++){dots[i].className='pom-dot'+(i<pomsDone%4?' done':'');}}
+
+// ─── Navigation ───────────────────────────────────────────────────────────────
+const TITLES={dashboard:'Dashboard',planner:'AI Weekly Planner',tasks:'Task Manager',notes:'Notes',timer:'Pomodoro Timer',analytics:'Analytics & Insights',achievements:'Achievements'};
+function switchTab(tab){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));qs(`#sec-${tab}`)?.classList.add('active');document.querySelector(`[data-tab="${tab}"]`)?.classList.add('active');qs('#pageTitle').textContent=TITLES[tab]||tab;if(tab==='planner')renderSchedule();if(tab==='analytics')renderAnalytics();if(tab==='achievements')renderAchievements();if(tab==='tasks'){renderAllList();renderUrgencyRow();}if(tab==='notes')renderNotes();filterTasks(taskFilter);}
+
+// ─── Sidebar ──────────────────────────────────────────────────────────────────
+function toggleSidebar(){qs('#sidebar').classList.toggle('expanded')}
+
+// ─── Panels ───────────────────────────────────────────────────────────────────
+function openNotifPanel(){generateNotifications();qs('#notif-panel').classList.add('open');qs('#settings-panel').classList.remove('open');qs('#panel-overlay').classList.add('show');}
+function closeNotifPanel(){qs('#notif-panel').classList.remove('open');qs('#panel-overlay').classList.remove('show');}
+function openSettingsPanel(){qs('#settings-panel').classList.add('open');qs('#notif-panel').classList.remove('open');qs('#panel-overlay').classList.add('show');}
+function closeSettingsPanel(){qs('#settings-panel').classList.remove('open');qs('#panel-overlay').classList.remove('show');}
+function closePanels(){closeNotifPanel();closeSettingsPanel();}
+
+// ─── Modals ───────────────────────────────────────────────────────────────────
+function openModal(){qs('#modal-bg').classList.add('open');setTimeout(()=>qs('#m-name')?.focus(),150);}
+function closeModal(){qs('#modal-bg').classList.remove('open')}
+function closeModalBg(e){if(e.target===qs('#modal-bg'))closeModal()}
+
+// ─── Toast ────────────────────────────────────────────────────────────────────
+function showToastMsg(msg,type='success'){const icons={success:'circle-check',warn:'triangle-exclamation',info:'circle-info',error:'circle-xmark'};const colors={success:'var(--green)',warn:'var(--amber)',info:'var(--accent2)',error:'var(--red)'};const el=document.createElement('div');el.className='toast';el.innerHTML=`<i class="fas fa-${icons[type]||'circle-check'} toast-icon" style="color:${colors[type]||'var(--green)'}"></i><span>${msg}</span>`;qs('#toast-area').prepend(el);setTimeout(()=>{el.classList.add('exit');setTimeout(()=>el.remove(),300)},3000);}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const qs=s=>document.querySelector(s);
+const v=id=>document.getElementById(id)?.value;
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+function init(){
+  load();setGreeting();applySettings();updateProfileUI();
+  refresh();renderSchedule();renderAnalytics();renderAchievements();renderNotes();
+
+  const today=new Date().toISOString().split('T')[0];
+  document.querySelectorAll('input[type=date]').forEach(i=>i.min=today);
+
+  document.querySelectorAll('.nav-item[data-tab]').forEach(el=>{el.onclick=()=>switchTab(el.dataset.tab);});
+
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){closeModal();closeNoteModal();closeProfileModal();closePanels();}
+    if(e.key==='Enter'&&qs('#modal-bg.open'))addTaskFromModal();
+    if(e.key==='Enter'&&qs('#note-modal-bg.open'))saveNote();
+  });
+
+  const sb=qs('#sidebar');
+  sb.addEventListener('mouseenter',()=>{if(window.innerWidth>600)sb.classList.add('expanded')});
+  sb.addEventListener('mouseleave',()=>{if(window.innerWidth>600)sb.classList.remove('expanded')});
+
+  qs('#timerRing').style.strokeDasharray=CIRC;
+  qs('#timerRing').style.strokeDashoffset=0;
+
+  setInterval(()=>{refresh();},30000);
+  showToastMsg('Welcome back! AI ready ✦','info');
+}
+
+init();
+</script>
+</body>
+</html>
